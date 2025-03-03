@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <style>/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f4f4f9;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #007BFF;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+}
+
+header button {
+    background: white;
+    color: #007BFF;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+header button:hover {
+    background: #0056b3;
+    color: white;
+}
+
+/* Buttons */
+button {
+    padding: 12px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: all 0.3s ease-in-out;
+}
+
+.add-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.add-btn:hover {
+    background-color: #218838;
+}
+
+button.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+button.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Lock Screen */
+#lockScreen {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    margin: 100px auto;
+}
+
+#lockScreen input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Popup Box */
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    width: 350px;
+}
+
+/* Product Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background: #007BFF;
+    color: white;
+}
+
+tr:hover {
+    background: #f1f1f1;
+}
+
+/* Visitors Chart */
+#visitorChart {
+    width: 80%;
+    max-width: 600px;
+    margin: 20px auto;
+}</style>
+    <!-- Lock Screen -->
+    <div id="lockScreen">
+        <h2>Enter Password to Access Admin Panel</h2>
+        <input type="password" id="adminPass">
+        <button onclick="checkPassword()">Unlock</button>
+        <p id="errorMsg"></p>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="container" id="adminPanel" style="display: none;">
+        <header>
+            <h1>Admin Panel</h1>
+            <button onclick="visitWebsite()">Visit Website</button>
+        </header>
+
+        <button class="add-btn" onclick="openPopup()">Add Product</button>
+
+        <!-- Add Product Pop-up -->
+        <div class="popup" id="popup">
+            <div class="popup-content">
+                <h2>Add Product</h2>
+                <label>Product Name:</label>
+                <input type="text" id="productName">
+                
+                <label>Retail Price:</label>
+                <input type="number" id="retailPrice">
+                
+                <label>Real Price:</label>
+                <input type="number" id="realPrice">
+                
+                <label>Description:</label>
+                <textarea id="description"></textarea>
+                
+                <button onclick="prepareEmail()">Submit</button>
+                <button onclick="closePopup()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Product List -->
+        <h2>Product List</h2>
+        <table id="productTable">
+            <tr>
+                <th>Name</th>
+                <th>Retail Price</th>
+                <th>Real Price</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+        </table>
+
+        <!-- Visitor Stats -->
+        <h2>Website Visitors</h2>
+        <p>Total Visitors: <span id="totalVisitors">0</span></p>
+        <p>Today's Visitors: <span id="dailyVisitors">0</span></p>
+        <canvas id="visitorChart"></canvas>
+    </div>
+
+    <script>document.addEventListener("DOMContentLoaded", () => {
+    loadProducts();
+    updateVisitorGraph();
+});
+
+// 🔑 Admin Panel Lock
+function checkPassword() {
+    let pass = document.getElementById("adminPass").value;
+    if (pass === "364133") {
+        document.getElementById("lockScreen").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+    } else {
+        document.getElementById("errorMsg").innerText = "Incorrect Password!";
+    }
+}
+
+// 🌐 Visit Website
+function visitWebsite() {
+    window.open("https://bookowl.odoo.com/add", "_blank");
+}
+
+// 📌 Open & Close Popup
+function openPopup() {
+    document.getElementById("popup").style.display = "block";
+}
+
+function closePopup() {
+    document.getElementById("popup").style.display = "none";
+}
+
+// ✅ Save Product & Redirect
+function prepareEmail() {
+    let name = document.getElementById("productName").value;
+    let retailPrice = document.getElementById("retailPrice").value;
+    let realPrice = document.getElementById("realPrice").value;
+    let description = document.getElementById("description").value;
+
+    if (!name || !retailPrice || !realPrice || !description) {
+        alert("All fields are required!");
+        return;
+    }
+
+    saveProduct(name, retailPrice, realPrice, description);
+    
+    // Redirect to Google after submission
+    setTimeout(() => {
+        window.location.href = "https://www.google.com";
+    }, 500);
+}
+
+// 🗂 Save Product to Local Storage
+function saveProduct(name, retailPrice, realPrice, description) {
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    products.push({ name, retailPrice, realPrice, description });
+    localStorage.setItem("products", JSON.stringify(products));
+    loadProducts();
+    closePopup();
+}
+
+// 📋 Load Products from Local Storage
+function loadProducts() {
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    let table = document.getElementById("productTable");
+
+    table.innerHTML = `<tr>
+        <th>Name</th>
+        <th>Retail Price</th>
+        <th>Real Price</th>
+        <th>Description</th>
+        <th>Action</th>
+    </tr>`;
+
+    products.forEach((product, index) => {
+        let row = table.insertRow();
+        row.innerHTML = `
+            <td>${product.name}</td>
+            <td>${product.retailPrice}</td>
+            <td>${product.realPrice}</td>
+            <td>${product.description}</td>
+            <td><button class="delete-btn" onclick="deleteProduct(${index})">Delete</button></td>
+        `;
+    });
+}
+
+// 🗑 Delete a Product & Redirect
+function deleteProduct(index) {
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    products.splice(index, 1);
+    localStorage.setItem("products", JSON.stringify(products));
+    loadProducts();
+
+    // Redirect to Google after deletion
+    setTimeout(() => {
+        window.location.href = "https://bookowl.odoo.com/delete";
+    }, 500);
+}
+
+// 📈 Website Visitor Graph Data
+let totalVisitors = localStorage.getItem("totalVisitors") || Math.floor(Math.random() * 500);
+let dailyVisitors = localStorage.getItem("dailyVisitors") || Math.floor(Math.random() * 50);
+document.getElementById("totalVisitors").innerText = totalVisitors;
+document.getElementById("dailyVisitors").innerText = dailyVisitors;
+
+// 📊 Track Visitor Updates (Only 3 Times a Day)
+let visitorUpdates = JSON.parse(localStorage.getItem("visitorUpdates")) || [];
+
+function updateVisitors() {
+    let currentHour = new Date().getHours();
+    
+    // Allow updates only 3 times a day (morning, afternoon, evening)
+    if (visitorUpdates.length >= 3) {
+        return;
+    }
+
+    let newVisitors = Math.floor(Math.random() * (50 - 20 + 1)) + 20;
+    dailyVisitors = newVisitors;
+    totalVisitors = parseInt(totalVisitors) + newVisitors;
+
+    document.getElementById("totalVisitors").innerText = totalVisitors;
+    document.getElementById("dailyVisitors").innerText = dailyVisitors;
+
+    localStorage.setItem("totalVisitors", totalVisitors);
+    localStorage.setItem("dailyVisitors", dailyVisitors);
+
+    // Log update times
+    visitorUpdates.push(currentHour);
+    localStorage.setItem("visitorUpdates", JSON.stringify(visitorUpdates));
+
+    updateVisitorGraph();
+}
+
+// 📊 Update Visitor Graph
+function updateVisitorGraph() {
+    var ctx = document.getElementById('visitorChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            datasets: [{
+                label: 'Daily Visitors',
+                data: [50, 60, 70, 80, 90, 100, dailyVisitors],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}</script>
+</body>
+</html>
