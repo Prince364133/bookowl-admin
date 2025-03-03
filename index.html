@@ -162,8 +162,7 @@ tr:hover {
                 
                 <label>Real Price:</label>
                 <input type="number" id="realPrice">
-                
-               
+              
                 
                 <button onclick="prepareEmail()">Submit</button>
                 <button onclick="closePopup()">Cancel</button>
@@ -177,7 +176,8 @@ tr:hover {
                 <th>Name</th>
                 <th>Retail Price</th>
                 <th>Real Price</th>
-               <th>Action</th>
+                <th>Description</th>
+                <th>Action</th>
             </tr>
         </table>
 
@@ -196,7 +196,7 @@ tr:hover {
 // 🔑 Admin Panel Lock
 function checkPassword() {
     let pass = document.getElementById("adminPass").value;
-    if (pass === "364133") {
+    if (pass === "11") {
         document.getElementById("lockScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
     } else {
@@ -225,12 +225,12 @@ function prepareEmail() {
     let realPrice = document.getElementById("realPrice").value;
    
 
-    if (!name || !retailPrice || !realPrice || !description) {
+    if (!name || !retailPrice || !realPrice) {
         alert("All fields are required!");
         return;
     }
 
-    saveProduct(name, retailPrice, realPrice, description);
+    saveProduct(name, retailPrice, realPrice);
     
     // Redirect to Google after submission
     setTimeout(() => {
@@ -256,6 +256,7 @@ function loadProducts() {
         <th>Name</th>
         <th>Retail Price</th>
         <th>Real Price</th>
+        
         <th>Action</th>
     </tr>`;
 
@@ -265,6 +266,7 @@ function loadProducts() {
             <td>${product.name}</td>
             <td>${product.retailPrice}</td>
             <td>${product.realPrice}</td>
+           
             <td><button class="delete-btn" onclick="deleteProduct(${index})">Delete</button></td>
         `;
     });
